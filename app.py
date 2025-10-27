@@ -2686,10 +2686,12 @@ def create_app() -> Flask:
     return app
 
 
+# Create app instance for WSGI servers like gunicorn
+app = create_app()
+
 # Enable running with `python app.py`
 if __name__ == "__main__":
-    application = create_app()
     # Use 0.0.0.0 to be accessible on LAN if needed
-    application.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
 
 
