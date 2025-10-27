@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <h2 class="mb-4">Admin Dashboard</h2>
+    <p class="text-muted mb-4">Manage the attendance system structure and monitor activity.</p>
+  </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.departments }}</h4>
+            <p class="card-text">Departments</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-building fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card bg-success text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.branches }}</h4>
+            <p class="card-text">Branches</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-diagram-3 fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card bg-info text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.classes }}</h4>
+            <p class="card-text">Classes</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-people fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card bg-warning text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.teachers }}</h4>
+            <p class="card-text">Teachers</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-person-badge fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Student Statistics -->
+<div class="row mb-4">
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="card bg-secondary text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.active_students }}</h4>
+            <p class="card-text">Active Students</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-person-check fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="card bg-dark text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.alumni_students }}</h4>
+            <p class="card-text">Alumni</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-person-x fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="card bg-light text-dark">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.semesters }}</h4>
+            <p class="card-text">Semesters</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-calendar3 fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 mb-2">
+            <a href="{{ url_for('admin_setup') }}" class="btn btn-primary w-100">
+              <i class="bi bi-gear me-2"></i>System Setup
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{ url_for('manage_departments') }}" class="btn btn-success w-100">
+              <i class="bi bi-building me-2"></i>Manage Departments
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{ url_for('manage_branches') }}" class="btn btn-info w-100">
+              <i class="bi bi-diagram-3 me-2"></i>Manage Branches
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{ url_for('manage_classes') }}" class="btn btn-warning w-100">
+              <i class="bi bi-people me-2"></i>Manage Classes
+            </a>
+          </div>
+        </div>
+        
+        <div class="row mt-2">
+          <div class="col-md-3 mb-2">
+            <a href="{{ url_for('manage_teachers') }}" class="btn btn-secondary w-100">
+              <i class="bi bi-person-badge me-2"></i>Manage Teachers
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{ url_for('manage_students_advanced') }}" class="btn btn-dark w-100">
+              <i class="bi bi-person-check me-2"></i>Manage Students
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{ url_for('manage_passwords') }}" class="btn btn-outline-primary w-100">
+              <i class="bi bi-key me-2"></i>Manage Passwords
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{{ url_for('manage_promotion') }}" class="btn btn-outline-danger w-100">
+              <i class="bi bi-arrow-up-circle me-2"></i>Promote Students
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="#" class="btn btn-outline-success w-100" onclick="alert('Reports - Coming Soon')">
+              <i class="bi bi-graph-up me-2"></i>View Reports
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Recent Attendance Sessions</h5>
+      </div>
+      <div class="card-body">
+        {% if recent_sessions %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead class="table-dark">
+                <tr>
+                  <th>Class</th>
+                  <th>Teacher</th>
+                  <th>Created</th>
+                  <th>Expiry</th>
+                  <th>Status</th>
+                  <th>Students Present</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for session in recent_sessions %}
+                <tr>
+                  <td><strong>{{ session.class_obj.name if session.class_obj else 'Unknown' }}</strong></td>
+                  <td>{{ session.teacher.name if session.teacher else 'Unknown' }}</td>
+                  <td>{{ session.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                  <td>{{ session.expiry.strftime('%Y-%m-%d %H:%M') }}</td>
+                  <td>
+                    {% if session.is_locked %}
+                      <span class="badge bg-secondary">Locked</span>
+                    {% elif session.expiry < current_time %}
+                      <span class="badge bg-danger">Expired</span>
+                    {% else %}
+                      <span class="badge bg-success">Active</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ session.attendances|length }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">No attendance sessions yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

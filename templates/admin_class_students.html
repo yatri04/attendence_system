@@ -1,0 +1,444 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-1">{{ class_obj.name }} - Students</h2>
+        <p class="text-muted">View and manage students in this class</p>
+      </div>
+      <div>
+        <a href="{{ url_for('manage_students_advanced') }}" class="btn btn-outline-secondary me-2">
+          <i class="bi bi-arrow-left me-2"></i>Back to All Students
+        </a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+          <i class="bi bi-person-plus me-2"></i>Add Student
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Class Statistics -->
+<div class="row mb-4">
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ total_students }}</h4>
+            <p class="card-text">Total Students</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-people fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card bg-success text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ active_students }}</h4>
+            <p class="card-text">Active Students</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-person-check fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card bg-warning text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ total_students - active_students }}</h4>
+            <p class="card-text">Inactive Students</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-person-x fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card bg-info text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ (active_students / total_students * 100) if total_students > 0 else 0 | round(1) }}%</h4>
+            <p class="card-text">Active Rate</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-graph-up fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="searchInput" class="form-label">Search Students</label>
+            <input type="text" class="form-control" id="searchInput" placeholder="Search by name, email, or roll number">
+          </div>
+          <div class="col-md-3">
+            <label for="statusFilter" class="form-label">Filter by Status</label>
+            <select class="form-select" id="statusFilter">
+              <option value="">All Students</option>
+              <option value="active">Active Only</option>
+              <option value="inactive">Inactive Only</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-primary" onclick="filterStudents()">
+                <i class="bi bi-search me-2"></i>Search
+              </button>
+              <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                <i class="bi bi-x-circle me-2"></i>Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Students Table -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Students in {{ class_obj.name }}</h5>
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-success btn-sm" onclick="selectAll()">
+            <i class="bi bi-check-all me-1"></i>Select All
+          </button>
+          <button type="button" class="btn btn-outline-warning btn-sm" onclick="selectNone()">
+            <i class="bi bi-x-circle me-1"></i>Select None
+          </button>
+          <button type="button" class="btn btn-outline-danger btn-sm" onclick="bulkDelete()" id="bulkDeleteBtn" disabled>
+            <i class="bi bi-trash me-1"></i>Delete Selected
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if students %}
+          <div class="table-responsive">
+            <table class="table table-hover" id="studentsTable">
+              <thead class="table-dark">
+                <tr>
+                  <th>
+                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleAllCheckboxes()">
+                  </th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Roll Number</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for student in students %}
+                <tr data-name="{{ student.name|lower }}" data-email="{{ student.email|lower }}" 
+                    data-roll="{% if student.roll_number %}{{ student.roll_number|lower }}{% endif %}" 
+                    data-status="{% if student.is_active %}active{% else %}inactive{% endif %}">
+                  <td>
+                    <input type="checkbox" class="student-checkbox" value="{{ student.id }}" onchange="updateBulkButtons()">
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                        {{ student.name[0].upper() }}
+                      </div>
+                      <strong>{{ student.name }}</strong>
+                    </div>
+                  </td>
+                  <td>{{ student.email }}</td>
+                  <td>
+                    {% if student.roll_number %}
+                      <span class="badge bg-secondary">{{ student.roll_number }}</span>
+                    {% else %}
+                      <span class="text-muted">N/A</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if student.is_active %}
+                      <span class="badge bg-success">Active</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <small class="text-muted">{{ student.created_at.strftime('%Y-%m-%d') }}</small>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-primary edit-student-btn" 
+                              data-student-id="{{ student.id }}">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-{% if student.is_active %}warning{% else %}success{% endif %} toggle-status-btn" 
+                              data-student-id="{{ student.id }}" 
+                              data-current-status="{% if student.is_active %}true{% else %}false{% endif %}">
+                        <i class="bi bi-{% if student.is_active %}pause{% else %}play{% endif %}"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-danger delete-student-btn" 
+                              data-student-id="{{ student.id }}" 
+                              data-student-name="{{ student.name }}">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-people display-1 text-muted"></i>
+            <h5 class="mt-3 text-muted">No Students in This Class</h5>
+            <p class="text-muted">Add students to this class to get started.</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+              <i class="bi bi-person-plus me-2"></i>Add First Student
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Student to {{ class_obj.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+        <form method="POST" action="{{ url_for('manage_students_advanced') }}">
+        <div class="modal-body">
+          <input type="hidden" name="action" value="add_single">
+          <input type="hidden" name="class_id" value="{{ class_obj.id }}">
+          
+          <div class="mb-3">
+            <label for="student_name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="student_name" name="name" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="student_email" class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="student_email" name="email" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="student_roll" class="form-label">Roll Number</label>
+            <input type="text" class="form-control" id="student_roll" name="roll_number" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="student_password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="student_password" name="password" required>
+            <div class="form-text">Leave empty for auto-generation</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-person-plus me-2"></i>Add Student
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// Search and filter functionality
+function filterStudents() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const statusFilter = document.getElementById('statusFilter').value;
+  const rows = document.querySelectorAll('#studentsTable tbody tr');
+  
+  rows.forEach(row => {
+    const name = row.dataset.name;
+    const email = row.dataset.email;
+    const roll = row.dataset.roll;
+    const status = row.dataset.status;
+    
+    const matchesSearch = !searchTerm || 
+      name.includes(searchTerm) || 
+      email.includes(searchTerm) || 
+      roll.includes(searchTerm);
+    
+    const matchesStatus = !statusFilter || status === statusFilter;
+    
+    if (matchesSearch && matchesStatus) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('statusFilter').value = '';
+  filterStudents();
+}
+
+// Bulk operations
+function selectAll() {
+  const visibleRows = document.querySelectorAll('#studentsTable tbody tr:not([style*="display: none"])');
+  visibleRows.forEach(row => {
+    const checkbox = row.querySelector('.student-checkbox');
+    if (checkbox) checkbox.checked = true;
+  });
+  document.getElementById('selectAllCheckbox').checked = true;
+  updateBulkButtons();
+}
+
+function selectNone() {
+  document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+  document.getElementById('selectAllCheckbox').checked = false;
+  updateBulkButtons();
+}
+
+function toggleAllCheckboxes() {
+  const selectAll = document.getElementById('selectAllCheckbox').checked;
+  document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = selectAll);
+  updateBulkButtons();
+}
+
+function updateBulkButtons() {
+  const selected = document.querySelectorAll('.student-checkbox:checked');
+  const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+  
+  if (selected.length > 0) {
+    bulkDeleteBtn.disabled = false;
+  } else {
+    bulkDeleteBtn.disabled = true;
+  }
+}
+
+function bulkDelete() {
+  const selected = document.querySelectorAll('.student-checkbox:checked');
+  if (selected.length === 0) return;
+  
+  if (confirm(`Are you sure you want to delete ${selected.length} selected students?`)) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url_for("manage_students_advanced") }}';
+    
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'bulk_delete';
+    form.appendChild(actionInput);
+    
+    selected.forEach(cb => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'student_ids';
+      input.value = cb.value;
+      form.appendChild(input);
+    });
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+// Event delegation for student action buttons
+document.addEventListener('DOMContentLoaded', function() {
+  // Edit student button
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.edit-student-btn')) {
+      const btn = e.target.closest('.edit-student-btn');
+      const studentId = btn.dataset.studentId;
+      editStudent(studentId);
+    }
+  });
+
+  // Toggle status button
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.toggle-status-btn')) {
+      const btn = e.target.closest('.toggle-status-btn');
+      const studentId = btn.dataset.studentId;
+      const currentStatus = btn.dataset.currentStatus === 'true';
+      toggleStatus(studentId, currentStatus);
+    }
+  });
+
+  // Delete student button
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-student-btn')) {
+      const btn = e.target.closest('.delete-student-btn');
+      const studentId = btn.dataset.studentId;
+      const studentName = btn.dataset.studentName;
+      deleteStudent(studentId, studentName);
+    }
+  });
+});
+
+function editStudent(studentId) {
+  // TODO: Implement edit functionality
+  alert('Edit functionality coming soon!');
+}
+
+function toggleStatus(studentId, currentStatus) {
+  const action = currentStatus ? 'deactivate' : 'activate';
+  if (confirm(`Are you sure you want to ${action} this student?`)) {
+    // TODO: Implement status toggle
+    alert('Status toggle functionality coming soon!');
+  }
+}
+
+function deleteStudent(studentId, studentName) {
+  if (confirm(`Are you sure you want to delete student "${studentName}"?`)) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url_for("manage_students_advanced") }}';
+    
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'delete';
+    form.appendChild(actionInput);
+    
+    const studentInput = document.createElement('input');
+    studentInput.type = 'hidden';
+    studentInput.name = 'student_id';
+    studentInput.value = studentId;
+    form.appendChild(studentInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+// Auto-search on input
+document.getElementById('searchInput').addEventListener('input', filterStudents);
+document.getElementById('statusFilter').addEventListener('change', filterStudents);
+</script>
+{% endblock %}

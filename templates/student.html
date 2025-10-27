@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <h2 class="mb-4">Student Dashboard</h2>
+    <p class="text-muted mb-4">Welcome, {{ current_user.name }}! Scan QR codes to mark attendance and view your attendance statistics.</p>
+  </div>
+</div>
+
+<!-- Student Info and Statistics -->
+<div class="row mb-4">
+  <div class="col-lg-4 mb-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.attendance_percentage }}%</h4>
+            <p class="card-text">Attendance Rate</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-graph-up fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4 mb-3">
+    <div class="card bg-success text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.attended_sessions }}</h4>
+            <p class="card-text">Sessions Attended</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-check-circle fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4 mb-3">
+    <div class="card bg-info text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ stats.total_sessions }}</h4>
+            <p class="card-text">Total Sessions</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-calendar3 fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Scanner -->
+<div class="row mb-4">
+  <div class="col-lg-7 mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">QR Code Scanner</h5>
+        <p class="text-muted">Scan the QR code displayed by your teacher to mark attendance.</p>
+        
+        <!-- WiFi Connection Status -->
+        <div id="wifi-status" class="mb-3">
+          <div class="alert alert-info">
+            <i class="bi bi-wifi me-2"></i>
+            <span id="wifi-status-text">Checking WiFi connection...</span>
+          </div>
+        </div>
+        
+        <div id="qr-reader" data-student-id="{{ current_user.id }}" style="width: 100%; max-width: 420px;"></div>
+        <div id="qr-reader-results" class="mt-3"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5 mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title">Class Information</h6>
+        {% if current_user.class_obj %}
+        <ul class="list-unstyled mb-0">
+          <li><strong>Class Name:</strong> {{ current_user.class_obj.name }}</li>
+          <li><strong>Semester:</strong> {{ current_user.class_obj.semester.number }}</li>
+          <li><strong>Division:</strong> {{ current_user.class_obj.division or 'N/A' }}</li>
+          <li><strong>Branch:</strong> {{ current_user.class_obj.branch.department.code }}{{ current_user.class_obj.branch.code }}</li>
+          <li><strong>Department:</strong> {{ current_user.class_obj.branch.department.name }}</li>
+          <li><strong>Total Students:</strong> {{ current_user.class_obj.students|length }}</li>
+        </ul>
+        
+        <hr>
+        
+        <h6 class="card-title">Student Information</h6>
+        <ul class="list-unstyled mb-0">
+          <li><strong>Name:</strong> {{ current_user.name }}</li>
+          <li><strong>Roll No:</strong> {{ current_user.roll_number or 'N/A' }}</li>
+          <li><strong>Status:</strong> 
+            <span class="badge bg-{{ 'success' if current_user.status == 'Active' else 'secondary' }}">
+              {{ current_user.status or 'Active' }}
+            </span>
+          </li>
+        </ul>
+        {% else %}
+        <div class="alert alert-warning">
+          <strong>No Class Assigned</strong><br>
+          Please contact your administrator to get assigned to a class.
+        </div>
+        {% endif %}
+        
+        <hr>
+        
+        <h6 class="card-title">Tips</h6>
+        <ul class="mb-0">
+          <li>Allow camera permissions when prompted.</li>
+          <li>Hold your device steady so the QR is clear.</li>
+          <li>QR codes expire quickly, scan promptly.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Attendance History -->
+{% if recent_attendance %}
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Recent Attendance History</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th>Date</th>
+                <th>Class</th>
+                <th>Status</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in recent_attendance %}
+              <tr>
+                <td>{{ record.session.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>{{ record.session.class_obj.name if record.session.class_obj else 'Unknown' }}</td>
+                <td>
+                  {% if record.present %}
+                    <span class="badge bg-success">Present</span>
+                  {% else %}
+                    <span class="badge bg-danger">Absent</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if record.timestamp %}
+                    {{ record.timestamp.strftime('%H:%M:%S') }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- html5-qrcode via CDN -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+  // Display helper
+  function showResult(message, isSuccess) {
+    const target = document.getElementById('qr-reader-results');
+    target.innerHTML = '';
+    const alert = document.createElement('div');
+    alert.className = 'alert ' + (isSuccess ? 'alert-success' : 'alert-danger');
+    alert.textContent = message;
+    target.appendChild(alert);
+  }
+
+  // Check WiFi connection status
+  function checkWifiStatus() {
+    fetch('{{ url_for("student_wifi_status") }}')
+      .then(response => response.json())
+      .then(data => {
+        const statusDiv = document.getElementById('wifi-status');
+        const statusText = document.getElementById('wifi-status-text');
+        
+        if (data.ok) {
+          statusDiv.innerHTML = `
+            <div class="alert alert-success">
+              <i class="bi bi-wifi me-2"></i>
+              <strong>WiFi Connected!</strong> ${data.message}
+            </div>
+          `;
+        } else {
+          statusDiv.innerHTML = `
+            <div class="alert alert-warning">
+              <i class="bi bi-wifi-off me-2"></i>
+              <strong>WiFi Not Connected!</strong> ${data.message}
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        const statusDiv = document.getElementById('wifi-status');
+        statusDiv.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> Unable to check WiFi status
+          </div>
+        `;
+      });
+  }
+
+  // Initialize QR scanner after DOM is ready
+  document.addEventListener('DOMContentLoaded', function () {
+    // Check WiFi status on page load
+    checkWifiStatus();
+    
+    // Check WiFi status every 30 seconds
+    setInterval(checkWifiStatus, 30000);
+    const html5QrCode = new Html5Qrcode("qr-reader");
+    const qrConfig = { fps: 10, qrbox: { width: 280, height: 280 } };
+
+    function onScanSuccess(decodedText, decodedResult) {
+      // Stop scanning to avoid multiple submissions
+      html5QrCode.stop().then(() => {
+        // Send decoded text to backend
+        const el = document.getElementById('qr-reader');
+        const studentId = el ? el.dataset.studentId : '';
+        fetch("{{ url_for('mark_attendance') }}", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ qr_data: decodedText, student_id: studentId })
+        }).then(r => r.json()).then(data => {
+          showResult(data.message || 'Done', !!data.ok);
+        }).catch(err => {
+          showResult('Network error: ' + err, false);
+        });
+      });
+    }
+
+    function onScanFailure(error) {
+      // We can ignore continuous scan errors.
+    }
+
+    // Prefer back camera on mobile devices
+    Html5Qrcode.getCameras().then(cameras => {
+      const backCam = cameras.find(c => /back|rear|environment/gi.test(c.label));
+      const cameraId = backCam ? backCam.id : (cameras[0] && cameras[0].id);
+      if (!cameraId) {
+        showResult('No camera found.', false);
+        return;
+      }
+      html5QrCode.start({ deviceId: { exact: cameraId } }, qrConfig, onScanSuccess, onScanFailure);
+    }).catch(err => {
+      showResult('Camera init error: ' + err, false);
+    });
+  });
+</script>
+{% endblock %}
+
+

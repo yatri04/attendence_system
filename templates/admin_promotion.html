@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Student Promotion Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-arrow-up-circle"></i> Student Promotion Management</h2>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Overview -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_students }}</h4>
+                            <p class="card-text">Active Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ alumni_students }}</h4>
+                            <p class="card-text">Alumni Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-graduation-cap fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ students_by_semester|length }}</h4>
+                            <p class="card-text">Active Semesters</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-book fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">8</h4>
+                            <p class="card-text">Max Semester</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-trophy fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Semester Distribution -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart"></i> Current Student Distribution by Semester
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if students_by_semester %}
+                    <div class="row">
+                        {% for semester, count in students_by_semester.items() %}
+                        <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-primary">Semester {{ semester.number }}</h6>
+                                    <h4 class="text-primary">{{ count }}</h4>
+                                    <small class="text-muted">students</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle"></i> No students found in any semester.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Action -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Promote All Students
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h6><i class="bi bi-warning"></i> Important Notice</h6>
+                        <p class="mb-2">This action will promote ALL active students to the next semester:</p>
+                        <ul class="mb-0">
+                            <li><strong>Semester 1 → 2, 2 → 3, ..., 7 → 8</strong></li>
+                            <li><strong>Semester 8 → Alumni</strong></li>
+                            <li><strong>This action cannot be undone!</strong></li>
+                        </ul>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Promotion Logic:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Current Class</th>
+                                            <th>Next Class</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>1CSE1</td><td>2CSE1</td></tr>
+                                        <tr><td>1CSE2</td><td>2CSE2</td></tr>
+                                        <tr><td>2CSE1</td><td>3CSE1</td></tr>
+                                        <tr><td>2CSE2</td><td>3CSE2</td></tr>
+                                        <tr><td>...</td><td>...</td></tr>
+                                        <tr><td>7CSE1</td><td>8CSE1</td></tr>
+                                        <tr><td>7CSE2</td><td>8CSE2</td></tr>
+                                        <tr><td>8CSE1/8CSE2</td><td><span class="badge bg-success">Alumni</span></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>What happens:</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    Students move to next semester class
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    Same branch and division maintained
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    Semester 8 students become Alumni
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    All changes are logged
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <form method="POST" id="promotionForm" onsubmit="return confirmPromotion()">
+                        <input type="hidden" name="action" value="promote_all">
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <button type="submit" class="btn btn-danger btn-lg px-5">
+                                <i class="bi bi-arrow-up-circle"></i> Promote All Students
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-shield-check"></i> Safety Features
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>Validation:</strong> Checks for valid classes
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>Error Handling:</strong> Reports issues without stopping
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>Rollback:</strong> Database rollback on failure
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>Logging:</strong> Complete audit trail
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>Confirmation:</strong> Double confirmation required
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-clock-history"></i> Promotion History
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-light mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Promotion history will be displayed here after promotions are performed.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmPromotion() {
+    const totalStudents = {{ total_students }};
+    
+    if (totalStudents === 0) {
+        alert('No active students found to promote.');
+        return false;
+    }
+    
+    const message = `⚠️ FINAL CONFIRMATION ⚠️\n\n` +
+                   `You are about to promote ${totalStudents} students.\n\n` +
+                   `This will:\n` +
+                   `• Move students to next semester\n` +
+                   `• Move Semester 8 students to Alumni\n` +
+                   `• This action CANNOT be undone!\n\n` +
+                   `Are you absolutely sure you want to continue?`;
+    
+    return confirm(message);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading state to form submission
+    const form = document.getElementById('promotionForm');
+    form.addEventListener('submit', function() {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Promoting Students...';
+        submitBtn.disabled = true;
+    });
+});
+</script>
+{% endblock %}

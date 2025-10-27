@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="row">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-1"><i class="bi bi-building me-2"></i>Principal Dashboard</h2>
+        <p class="text-muted mb-0">Institution-wide Analytics & Performance Overview</p>
+      </div>
+      <div class="text-end">
+        <span class="badge bg-primary fs-6">{{ stats.total_sessions }} Sessions</span>
+        <span class="badge bg-success fs-6 ms-2">{{ stats.avg_attendance }}% Avg</span>
+        <span class="badge bg-info fs-6 ms-2">{{ stats.departments }} Depts</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Institution Statistics Cards with Progress Indicators -->
+<div class="row mb-4">
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card border-primary h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="card-title text-primary mb-0">{{ stats.departments }}</h3>
+            <p class="text-muted mb-0">Departments</p>
+          </div>
+          <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+            <i class="bi bi-building fs-2 text-primary"></i>
+          </div>
+        </div>
+        <div class="progress" style="height: 6px;">
+          <div class="progress-bar bg-primary" style="width: {{ (stats.departments / 10 * 100) if stats.departments <= 10 else 100 }}%"></div>
+        </div>
+        <small class="text-muted">Academic Structure</small>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card border-success h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="card-title text-success mb-0">{{ stats.branches }}</h3>
+            <p class="text-muted mb-0">Branches</p>
+          </div>
+          <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+            <i class="bi bi-diagram-3 fs-2 text-success"></i>
+          </div>
+        </div>
+        <div class="progress" style="height: 6px;">
+          <div class="progress-bar bg-success" style="width: {{ (stats.branches / 30 * 100) if stats.branches <= 30 else 100 }}%"></div>
+        </div>
+        <small class="text-muted">Academic Programs</small>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card border-info h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="card-title text-info mb-0">{{ stats.classes }}</h3>
+            <p class="text-muted mb-0">Classes</p>
+          </div>
+          <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+            <i class="bi bi-people fs-2 text-info"></i>
+          </div>
+        </div>
+        <div class="progress" style="height: 6px;">
+          <div class="progress-bar bg-info" style="width: {{ (stats.classes / 50 * 100) if stats.classes <= 50 else 100 }}%"></div>
+        </div>
+        <small class="text-muted">Active Classes</small>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 mb-3">
+    <div class="card border-warning h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="card-title text-warning mb-0">{{ stats.students }}</h3>
+            <p class="text-muted mb-0">Total Students</p>
+          </div>
+          <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+            <i class="bi bi-person-check fs-2 text-warning"></i>
+          </div>
+        </div>
+        <div class="progress" style="height: 6px;">
+          <div class="progress-bar bg-warning" style="width: {{ (stats.students / 1000 * 100) if stats.students <= 1000 else 100 }}%"></div>
+        </div>
+        <small class="text-muted">Student Population</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Student Status Overview -->
+<div class="row mb-4">
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="card border-success h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="card-title text-success mb-0">{{ stats.active_students }}</h3>
+            <p class="text-muted mb-0">Active Students</p>
+          </div>
+          <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+            <i class="bi bi-person-check fs-2 text-success"></i>
+          </div>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar bg-success" style="width: {{ (stats.active_students / stats.students * 100) if stats.students > 0 else 0 }}%"></div>
+        </div>
+        <small class="text-muted">{{ ((stats.active_students / stats.students * 100) if stats.students > 0 else 0)|round(1) }}% of total</small>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="card border-secondary h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="card-title text-secondary mb-0">{{ stats.alumni_students }}</h3>
+            <p class="text-muted mb-0">Alumni</p>
+          </div>
+          <div class="bg-secondary bg-opacity-10 p-3 rounded-circle">
+            <i class="bi bi-person-x fs-2 text-secondary"></i>
+          </div>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar bg-secondary" style="width: {{ (stats.alumni_students / stats.students * 100) if stats.students > 0 else 0 }}%"></div>
+        </div>
+        <small class="text-muted">{{ ((stats.alumni_students / stats.students * 100) if stats.students > 0 else 0)|round(1) }}% of total</small>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4 col-md-6 mb-3">
+    <div class="card border-info h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="card-title text-info mb-0">{{ stats.avg_attendance }}%</h3>
+            <p class="text-muted mb-0">Avg Attendance</p>
+          </div>
+          <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+            <i class="bi bi-graph-up fs-2 text-info"></i>
+          </div>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar bg-info" style="width: {{ stats.avg_attendance }}%"></div>
+        </div>
+        <small class="text-muted">Institution Performance</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Department Performance Charts -->
+<div class="row mb-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Department Performance Comparison</h5>
+      </div>
+      <div class="card-body">
+        {% if dept_stats %}
+          <canvas id="departmentChart" height="100"></canvas>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-graph-down fs-1 text-muted"></i>
+            <p class="text-muted mt-2">No department data available</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Department Distribution</h5>
+      </div>
+      <div class="card-body">
+        {% if dept_stats %}
+          <canvas id="departmentPieChart" height="200"></canvas>
+        {% else %}
+          <div class="text-center py-3">
+            <i class="bi bi-exclamation-circle fs-2 text-muted"></i>
+            <p class="text-muted mt-2 mb-0">No data available</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Department Statistics Table -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Department Statistics</h5>
+      </div>
+      <div class="card-body">
+        {% if dept_stats %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th>Department</th>
+                  <th>Branches</th>
+                  <th>Classes</th>
+                  <th>Students</th>
+                  <th>Teachers</th>
+                  <th>Performance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for dept in dept_stats %}
+                <tr>
+                  <td><strong>{{ dept.name }}</strong></td>
+                  <td>
+                    <span class="badge bg-primary">{{ dept.branches }}</span>
+                  </td>
+                  <td>
+                    <span class="badge bg-info">{{ dept.classes }}</span>
+                  </td>
+                  <td>
+                    <span class="badge bg-warning">{{ dept.students }}</span>
+                  </td>
+                  <td>
+                    <span class="badge bg-success">{{ dept.teachers }}</span>
+                  </td>
+                  <td>
+                    {% set performance = (dept.students / 50 * 100) if dept.students <= 50 else 100 %}
+                    <div class="progress" style="height: 20px;">
+                      <div class="progress-bar bg-gradient" style="width: {{ performance }}%">
+                        {{ performance|round(0) }}%
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-table fs-1 text-muted"></i>
+            <p class="text-muted mt-2">No department statistics available</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity with Visual Indicators -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Institution Activity</h5>
+      </div>
+      <div class="card-body">
+        {% if recent_sessions %}
+          <div class="row">
+            {% for session in recent_sessions %}
+            <div class="col-lg-6 col-xl-4 mb-3">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="card-title mb-0">{{ session.class_obj.name if session.class_obj else 'Unknown' }}</h6>
+                    {% if session.is_locked %}
+                      <span class="badge bg-secondary">Locked</span>
+                    {% elif session.expiry < current_time %}
+                      <span class="badge bg-danger">Expired</span>
+                    {% else %}
+                      <span class="badge bg-success">Active</span>
+                    {% endif %}
+                  </div>
+                  
+                  <p class="text-muted small mb-2">
+                    <i class="bi bi-building me-1"></i>
+                    {{ session.class_obj.branch.department.name if session.class_obj and session.class_obj.branch and session.class_obj.branch.department else 'Unknown Dept' }}
+                  </p>
+                  
+                  <p class="text-muted small mb-2">
+                    <i class="bi bi-person-badge me-1"></i>
+                    {{ session.teacher.name if session.teacher else 'Unknown' }}
+                  </p>
+                  
+                  <div class="row text-center">
+                    <div class="col-6">
+                      <div class="border-end">
+                        <div class="text-primary fw-bold fs-5">{{ session.attendances|length }}</div>
+                        <small class="text-muted">Present</small>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="text-info fw-bold fs-5">{{ session.created_at.strftime('%H:%M') }}</div>
+                      <small class="text-muted">Started</small>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-2">
+                    <small class="text-muted">
+                      <i class="bi bi-calendar me-1"></i>
+                      {{ session.created_at.strftime('%Y-%m-%d') }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-calendar-x fs-1 text-muted"></i>
+            <p class="text-muted mt-2">No recent activity</p>
+            <small class="text-muted">Activity will appear here once teachers start marking attendance</small>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for Charts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  {% if dept_stats %}
+  // Department Performance Chart
+  const ctx = document.getElementById('departmentChart').getContext('2d');
+  const deptData = {{ dept_stats|tojson }};
+  
+  const labels = deptData.map(item => item.name);
+  const studentsData = deptData.map(item => item.students);
+  const teachersData = deptData.map(item => item.teachers);
+  const classesData = deptData.map(item => item.classes);
+  
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Students',
+        data: studentsData,
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }, {
+        label: 'Teachers',
+        data: teachersData,
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }, {
+        label: 'Classes',
+        data: classesData,
+        backgroundColor: 'rgba(255, 206, 86, 0.6)',
+        borderColor: 'rgba(255, 206, 86, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Department Comparison'
+        },
+        legend: {
+          position: 'top'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Count'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Departments'
+          }
+        }
+      }
+    }
+  });
+
+  // Department Pie Chart
+  const pieCtx = document.getElementById('departmentPieChart').getContext('2d');
+  new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: studentsData,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(54, 162, 235, 0.6)',
+          'rgba(255, 206, 86, 0.6)',
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(153, 102, 255, 0.6)',
+          'rgba(255, 159, 64, 0.6)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Student Distribution by Department'
+        },
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+  {% endif %}
+});
+</script>
+{% endblock %}

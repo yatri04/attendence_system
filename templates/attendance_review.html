@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <h2 class="mb-4">Attendance Review - {{ class_obj.name }}</h2>
+    <p class="text-muted mb-4">Review and manually adjust attendance within the 1-hour window.</p>
+  </div>
+</div>
+
+<!-- Session Information -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Session Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <strong>Session ID:</strong><br>
+            <code>{{ latest_session.session_uuid }}</code>
+          </div>
+          <div class="col-md-3">
+            <strong>Created:</strong><br>
+            {{ latest_session.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+          </div>
+          <div class="col-md-3">
+            <strong>QR Expiry:</strong><br>
+            {{ latest_session.expiry.strftime('%Y-%m-%d %H:%M:%S') }}
+          </div>
+          <div class="col-md-3">
+            <strong>Review Deadline:</strong><br>
+            {{ review_deadline.strftime('%Y-%m-%d %H:%M:%S') }}
+          </div>
+        </div>
+        
+        {% if is_within_review_window %}
+          <div class="alert alert-success mt-3">
+            <i class="bi bi-check-circle me-2"></i>
+            <strong>Review Window Active:</strong> You can manually adjust attendance until {{ review_deadline.strftime('%H:%M') }}.
+          </div>
+        {% else %}
+          <div class="alert alert-danger mt-3">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Review Window Expired:</strong> This session can no longer be modified.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance List -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Student Attendance</h5>
+        {% if is_within_review_window %}
+          <form method="POST" action="{{ url_for('lock_session', class_id=class_obj.id) }}" class="d-inline">
+            <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Are you sure you want to lock this session? This action cannot be undone.')">
+              <i class="bi bi-lock me-1"></i>Lock Session
+            </button>
+          </form>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if attendance_data %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead class="table-dark">
+                <tr>
+                  <th>Roll No</th>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Timestamp</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for data in attendance_data %}
+                <tr>
+                  <td><strong>{{ data.student.roll_number or 'N/A' }}</strong></td>
+                  <td>{{ data.student.name }}</td>
+                  <td>
+                    {% if data.present %}
+                      <span class="badge bg-success">Present</span>
+                    {% else %}
+                      <span class="badge bg-danger">Absent</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if data.present and data.attendance_id %}
+                      {{ data.student.attendances[0].timestamp.strftime('%H:%M:%S') if data.student.attendances else 'N/A' }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if is_within_review_window %}
+                      {% if data.present %}
+                        <button class="btn btn-outline-danger btn-sm" onclick="showOverrideModal({{ data.student.id }}, 'mark_absent', '{{ data.student.name }}')">
+                          <i class="bi bi-x-circle me-1"></i>Mark Absent
+                        </button>
+                      {% else %}
+                        <button class="btn btn-outline-success btn-sm" onclick="showOverrideModal({{ data.student.id }}, 'mark_present', '{{ data.student.name }}')">
+                          <i class="bi bi-check-circle me-1"></i>Mark Present
+                        </button>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted">No changes allowed</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">No students found in this class.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Override Modal -->
+<div class="modal fade" id="overrideModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Manual Attendance Override</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('review_attendance', class_id=class_obj.id) }}">
+        <div class="modal-body">
+          <input type="hidden" id="override_student_id" name="student_id">
+          <input type="hidden" id="override_action" name="action">
+          
+          <div class="mb-3">
+            <label class="form-label">Student:</label>
+            <p id="override_student_name" class="form-control-plaintext fw-bold"></p>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Action:</label>
+            <p id="override_action_text" class="form-control-plaintext"></p>
+          </div>
+          
+          <div class="mb-3">
+            <label for="override_reason" class="form-label">Reason (Optional):</label>
+            <textarea class="form-control" id="override_reason" name="reason" rows="3" placeholder="Enter reason for this change..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Change</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Back Button -->
+<div class="row mt-4">
+  <div class="col-12">
+    <a href="{{ url_for('class_page', class_id=class_obj.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-2"></i>Back to Class
+    </a>
+  </div>
+</div>
+
+<script>
+function showOverrideModal(studentId, action, studentName) {
+  document.getElementById('override_student_id').value = studentId;
+  document.getElementById('override_action').value = action;
+  document.getElementById('override_student_name').textContent = studentName;
+  
+  if (action === 'mark_present') {
+    document.getElementById('override_action_text').textContent = 'Mark as Present';
+  } else {
+    document.getElementById('override_action_text').textContent = 'Mark as Absent';
+  }
+  
+  new bootstrap.Modal(document.getElementById('overrideModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-1">Attendance Records - {{ class_obj.name }}</h2>
+        <p class="text-muted mb-0">View and download past attendance records for this class</p>
+      </div>
+      <div>
+        <a href="{{ url_for('class_page', class_id=class_obj.id) }}" class="btn btn-outline-secondary me-2">
+          <i class="bi bi-arrow-left me-2"></i>Back to Class
+        </a>
+        <a href="{{ url_for('download_class_records', class_id=class_obj.id) }}" class="btn btn-success me-2">
+          <i class="bi bi-download me-2"></i>Download CSV
+        </a>
+        <a href="{{ url_for('download_class_records_pdf', class_id=class_obj.id) }}" class="btn btn-danger">
+          <i class="bi bi-file-pdf me-2"></i>Download PDF
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Class Statistics -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ students|length }}</h4>
+            <p class="card-text">Total Students</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-people fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card bg-success text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">{{ attendance_records|length }}</h4>
+            <p class="card-text">Total Sessions</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-calendar3 fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card bg-info text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">
+              {% if attendance_records %}
+                {{ (attendance_records|sum(attribute='present_count') / (attendance_records|length * students|length) * 100)|round(1) }}%
+              {% else %}
+                0%
+              {% endif %}
+            </h4>
+            <p class="card-text">Avg Attendance</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-graph-up fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card bg-warning text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4 class="card-title">
+              {% if attendance_records %}
+                {{ attendance_records|sum(attribute='present_count') }}
+              {% else %}
+                0
+              {% endif %}
+            </h4>
+            <p class="card-text">Total Present</p>
+          </div>
+          <div class="align-self-center">
+            <i class="bi bi-person-check fs-1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Records Table -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Detailed Attendance Records</h5>
+      </div>
+      <div class="card-body">
+        {% if attendance_records %}
+          <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+              <thead class="table-dark">
+                <tr>
+                  <th rowspan="2" class="align-middle">Student</th>
+                  <th rowspan="2" class="align-middle">Roll No</th>
+                  <th rowspan="2" class="align-middle">Email</th>
+                  {% for record in attendance_records %}
+                  <th class="text-center">
+                    Session {{ record.session.id }}<br>
+                    <small>{{ record.session.created_at.strftime('%m/%d %H:%M') }}</small>
+                  </th>
+                  {% endfor %}
+                  <th rowspan="2" class="align-middle text-center">Total Present</th>
+                  <th rowspan="2" class="align-middle text-center">Attendance %</th>
+                </tr>
+                <tr>
+                  {% for record in attendance_records %}
+                  <th class="text-center">
+                    <small>{{ record.present_count }}/{{ record.total_count }}</small>
+                  </th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for student in students %}
+                <tr>
+                  <td><strong>{{ student.name }}</strong></td>
+                  <td>{{ student.roll_number or 'N/A' }}</td>
+                  <td>{{ student.email }}</td>
+                  {% set student_present_count = 0 %}
+                  {% for record in attendance_records %}
+                    {% for attendance in record.attendance %}
+                      {% if attendance.student.id == student.id %}
+                        {% if attendance.present %}
+                          {% set student_present_count = student_present_count + 1 %}
+                        {% endif %}
+                        <td class="text-center">
+                          {% if attendance.present %}
+                            <span class="badge bg-success">✓</span>
+                          {% else %}
+                            <span class="badge bg-danger">✗</span>
+                          {% endif %}
+                        </td>
+                      {% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                  <td class="text-center">
+                    <strong>{{ student_present_count }}</strong>
+                  </td>
+                  <td class="text-center">
+                    <strong>
+                      {% if attendance_records|length > 0 %}
+                        {{ (student_present_count / attendance_records|length * 100)|round(1) }}%
+                      {% else %}
+                        0%
+                      {% endif %}
+                    </strong>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-calendar-x fs-1 text-muted"></i>
+            <h5 class="text-muted mt-3">No Attendance Records</h5>
+            <p class="text-muted">No attendance sessions have been conducted for this class yet.</p>
+            <a href="{{ url_for('class_page', class_id=class_obj.id) }}" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-2"></i>Start First Session
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Summary -->
+{% if attendance_records %}
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Session Summary</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th>Session ID</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+                <th>Present</th>
+                <th>Absent</th>
+                <th>Attendance Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in attendance_records %}
+              <tr>
+                <td><strong>{{ record.session.id }}</strong></td>
+                <td>{{ record.session.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                  {% if record.session.is_locked %}
+                    <span class="badge bg-secondary">Locked</span>
+                  {% else %}
+                    <span class="badge bg-success">Active</span>
+                  {% endif %}
+                </td>
+                <td><span class="badge bg-success">{{ record.present_count }}</span></td>
+                <td><span class="badge bg-danger">{{ record.total_count - record.present_count }}</span></td>
+                <td>
+                  <strong>
+                    {% if record.total_count > 0 %}
+                      {{ (record.present_count / record.total_count * 100)|round(1) }}%
+                    {% else %}
+                      0%
+                    {% endif %}
+                  </strong>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <h2 class="mb-4">Admin Setup</h2>
+    <p class="text-muted mb-4">Create sample classes and assign teachers to classes.</p>
+  </div>
+</div>
+
+<!-- Create Sample Classes -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Create Sample Classes</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">This will create sample classes: 5CSE1, 5CSE2, 1CSE1, 1CSE2, 3CSE1, 3CSE2</p>
+        <form method="POST" action="{{ url_for('admin_setup') }}">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Create Sample Classes
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Import Students -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Bulk Import Students</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">Upload a CSV file to import multiple students at once. Passwords will be generated automatically.</p>
+        
+        <div class="alert alert-info">
+          <h6>CSV Format Required:</h6>
+          <p class="mb-2">Your CSV file must have these columns:</p>
+          <code>name,email,roll_number,class_name,password</code>
+          <br><br>
+          <strong>Password Column:</strong>
+          <ul class="mb-2">
+            <li>Include passwords in the CSV file</li>
+            <li>Leave empty for auto-generation</li>
+            <li>Use default password for all if specified</li>
+          </ul>
+          <strong>Example:</strong><br>
+          <code>John Doe,john.doe@example.com,2021001,5CSE1,student123</code><br>
+          <code>Jane Smith,jane.smith@example.com,2021002,5CSE1,</code><br>
+          <code>Bob Johnson,bob.johnson@example.com,2021003,5CSE2,custompass456</code>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin_setup') }}" enctype="multipart/form-data">
+          <div class="row">
+            <div class="col-md-8">
+              <label for="csv_file" class="form-label">Select CSV File</label>
+              <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+            </div>
+            <div class="col-md-4">
+              <label for="default_password" class="form-label">Default Password (Optional)</label>
+              <input type="text" class="form-control" id="default_password" name="default_password" placeholder="Leave empty for random passwords">
+            </div>
+          </div>
+          <div class="mt-3">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-upload me-2"></i>Import Students
+            </button>
+            <a href="{{ url_for('download_sample_csv') }}" class="btn btn-outline-secondary ms-2">
+              <i class="bi bi-download me-2"></i>Download Sample CSV
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Assign Teachers to Classes -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Assign Teacher to Class</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('assign_teacher') }}">
+          <div class="row">
+            <div class="col-md-6">
+              <label for="teacher_id" class="form-label">Select Teacher</label>
+              <select class="form-select" id="teacher_id" name="teacher_id" required>
+                <option value="">Choose a teacher...</option>
+                {% for teacher in teachers %}
+                <option value="{{ teacher.id }}">{{ teacher.name }} ({{ teacher.email }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="class_id" class="form-label">Select Class</label>
+              <select class="form-select" id="class_id" name="class_id" required>
+                <option value="">Choose a class...</option>
+                {% for class in classes %}
+                <option value="{{ class.id }}">{{ class.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="mt-3">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-link me-2"></i>Assign Teacher to Class
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Current Classes -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Current Classes</h5>
+      </div>
+      <div class="card-body">
+        {% if classes %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Created</th>
+                  <th>Students</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for class in classes %}
+                <tr>
+                  <td>{{ class.id }}</td>
+                  <td><strong>{{ class.name }}</strong></td>
+                  <td>{{ class.created_at.strftime('%Y-%m-%d') }}</td>
+                  <td>{{ class.students|length }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">No classes created yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Current Teacher Assignments -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Current Teacher Assignments</h5>
+      </div>
+      <div class="card-body">
+        {% if teacher_classes %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead class="table-dark">
+                <tr>
+                  <th>Teacher</th>
+                  <th>Class</th>
+                  <th>Assigned Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for tc in teacher_classes %}
+                <tr>
+                  <td>{{ tc.teacher.name }} ({{ tc.teacher.email }})</td>
+                  <td><strong>{{ tc.class_obj.name }}</strong></td>
+                  <td>{{ tc.created_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">No teacher assignments yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

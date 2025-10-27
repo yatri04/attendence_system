@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-6 mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Teacher Dashboard</h5>
+        <p class="text-muted">Generate a QR code for the current class. The code will be valid for 5 minutes.</p>
+        <form method="POST" action="{{ url_for('generate_qr') }}">
+          <button type="submit" class="btn btn-success">Generate QR</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Current QR</h5>
+        <p class="text-muted">If a QR was generated recently, it appears below.</p>
+        <div class="text-center">
+          <img src="{{ url_for('static', filename='current_qr.png') }}?t={{ now.timestamp() }}" alt="QR Code" class="img-fluid border" style="max-width: 320px;">
+        </div>
+        {% if latest_session %}
+          <p class="mt-3 mb-0"><strong>Session ID:</strong> {{ latest_session.session_uuid }}</p>
+          <p class="mb-0"><strong>Expires:</strong> {{ latest_session.expiry }}</p>
+        {% else %}
+          <p class="mt-3 mb-0">No session generated yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
